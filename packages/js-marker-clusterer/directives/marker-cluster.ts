@@ -1,4 +1,4 @@
-import {Directive, Input, OnDestroy, OnChanges, OnInit, SimpleChange} from '@angular/core';
+import {Directive, Input, OnDestroy, OnChanges, OnInit, SimpleChange, Output, EventEmitter} from '@angular/core';
 
 import {ClusterManager} from '../services/managers/cluster-manager';
 import {MarkerManager, InfoWindowManager} from '@agm/core';
@@ -74,6 +74,9 @@ export class AgmMarkerCluster implements OnDestroy, OnChanges, OnInit, ClusterOp
   @Input() imagePath: string;
   @Input() imageExtension: string;
 
+   @Output()
+  clusterClick: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
+  
   constructor(private _clusterManager: ClusterManager) {}
 
   /** @internal */
@@ -123,6 +126,19 @@ export class AgmMarkerCluster implements OnDestroy, OnChanges, OnInit, ClusterOp
       styles: this.styles,
       imagePath: this.imagePath,
       imageExtension: this.imageExtension,
+    });
+    
+    this._addEventListeners();
+  }
+  
+  
+  private _addEventListeners() {
+     const handlers = [
+      {name: 'clusterclick', handler: (ev: mapTypes.MouseEvent) => this.clusterClick.emit(ev)},
+    ];
+     handlers.forEach((obj) => {
+      const os = this._clusterManager.createClusterEventObservable(obj.name, this).subscribe(obj.handler);
+      this._subscriptions.push(os);
     });
   }
 }
